@@ -1,0 +1,92 @@
+# Laravel
+/vendor/
+vendor/
+/node_modules/
+node_modules/
+public/hot
+public/storage
+storage/*.key
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+bootstrap/cache/*
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+
+# IDE & Editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+*.swp
+*.swo
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+/docker/**/*.log
+
+# Dependencies
+composer.phar
+npm-debug.log
+yarn-error.log
+yarn.lock
+package-lock.json
+
+# Testing
+.phpunit.cache/
+coverage/
+.phpunit.result.cache
+coverage.xml
+*.coverage
+.coverage
+
+# Build files
+public/build/
+public/css/
+public/js/
+public/mix-manifest.json
+public/hot
+
+# Cache
+.php_cs.cache
+.php-cs-fixer.cache
+.phpstorm.meta.php
+_ide_helper.php
+_ide_helper_models.php
+
+# Logs
+*.log
+storage/logs/
+
+# Исключаем конфиги, которые могут содержать чувствительные данные
+/docker/rabbitmq/definitions.local.json
+/docker/postgres/init.local.sql
+
+# Но сохраняем примеры конфигов
+!docker/rabbitmq/definitions.example.json
+!docker/postgres/init.example.sql
+
+# Исключаем временные файлы
+*.tmp
+*.temp
+*.bak
+*.cache
+
+# Исключаем файлы операционной системы
+.directory
+.Trash-*
+$RECYCLE.BIN/
+ehthumbs.db
+Desktop.ini
