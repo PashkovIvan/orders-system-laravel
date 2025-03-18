@@ -36,7 +36,7 @@ RUN git config --system --add safe.directory '*'
 # Рабочая директория
 WORKDIR /var/www/html
 
-# Копирование всего проекта сразу
+# Копирование всего проекта
 COPY . .
 
 # Установка прав доступа
