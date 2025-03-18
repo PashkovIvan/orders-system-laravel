@@ -1,19 +1,21 @@
 services:
   nginx:
     build:
-      context: ./docker/nginx
+      context: docker/nginx
     ports:
       - "80:80"
     volumes:
       - .:/var/www/html
     depends_on:
-      - app
+      app:
+        condition: service_healthy
     networks:
       - app-network
 
   app:
     build:
-      context: ./docker/php
+      context: .
+      dockerfile: docker/php/Dockerfile
     volumes:
       - .:/var/www/html
       - ./docker/php/conf.d:/usr/local/etc/php/conf.d
@@ -24,12 +26,17 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php-fpm", "-t"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - app-network
 
   postgres:
     build:
-      context: ./docker/postgres
+      context: docker/postgres
     ports:
       - "5432:5432"
     environment:
@@ -49,7 +56,7 @@ services:
 
   rabbitmq:
     build:
-      context: ./docker/rabbitmq
+      context: docker/rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"

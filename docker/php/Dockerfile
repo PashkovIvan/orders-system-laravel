@@ -11,29 +11,37 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
+# Создание директории для логов PHP
+RUN mkdir -p /var/log/php && \
+    chown -R www-data:www-data /var/log/php
+
 # Установка PHP расширений
-RUN docker-php-ext-install \
-    pdo_pgsql \
-    pgsql \
-    zip \
-    opcache
+RUN docker-php-ext-install -j$(nproc) pdo_pgsql pgsql zip opcache \
+    && docker-php-ext-enable pdo_pgsql pgsql zip opcache
 
 # Установка Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Настройка PHP
-COPY php.ini /usr/local/etc/php/php.ini
-COPY conf.d/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/php/php.ini /usr/local/etc/php/php.ini
+COPY docker/php/conf.d/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 
 # Настройка для RabbitMQ
 RUN pecl install amqp \
     && docker-php-ext-enable amqp
 
+# Настройка Git для безопасной директории
+RUN git config --system --add safe.directory '*'
+
 # Рабочая директория
 WORKDIR /var/www/html
 
-# Права на папки
-RUN chown -R www-data:www-data /var/www/html
+# Копирование всего проекта сразу
+COPY . .
+
+# Установка прав доступа
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 storage bootstrap/cache
 
 # Пользователь
 USER www-data
