@@ -69,7 +69,15 @@ docker-compose exec -T app php artisan cache:clear
 docker-compose exec -T app php artisan config:clear
 docker-compose exec -T app php artisan route:clear
 
+# Генерация документации Swagger
+echo "📚 Генерация документации Swagger..."
+docker-compose exec -T app php artisan l5-swagger:generate || {
+    echo "❌ Ошибка генерации документации Swagger."
+    exit 1
+}
+
 echo "✨ Установка завершена!"
 echo "🌐 Проект доступен по адресу: http://localhost"
+echo "📚 Swagger UI: http://localhost/api/documentation"
 echo "🐰 RabbitMQ Management: http://localhost:15672"
 echo "🐘 PostgreSQL доступен на порту: 5432"

@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Contracts\MessageProducerInterface;
+use App\Contracts\Messages\Producer\MessageProducerInterface;
 use App\Messages\Orders\OrderCreatedMessage;
 use App\Models\Order;
 use Illuminate\Bus\Queueable;

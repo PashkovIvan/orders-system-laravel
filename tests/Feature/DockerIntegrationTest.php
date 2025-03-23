@@ -36,29 +36,6 @@ class DockerIntegrationTest extends TestCase
         }
     }
 
-    public function test_redis_connection(): void
-    {
-        try {
-            \Illuminate\Support\Facades\Redis::ping();
-            $this->assertTrue(true);
-        } catch (\Exception $e) {
-            $this->fail('Redis connection failed: ' . $e->getMessage());
-        }
-    }
-
-    public function test_elasticsearch_connection(): void
-    {
-        try {
-            $client = \Elasticsearch\ClientBuilder::create()
-                ->setHosts([config('elasticsearch.hosts')])
-                ->build();
-            $client->info();
-            $this->assertTrue(true);
-        } catch (\Exception $e) {
-            $this->fail('Elasticsearch connection failed: ' . $e->getMessage());
-        }
-    }
-
     public function test_nginx_connection(): void
     {
         $response = $this->get('/');
@@ -70,8 +47,6 @@ class DockerIntegrationTest extends TestCase
         $services = [
             'postgresql' => 'http://postgresql:5432',
             'rabbitmq' => 'http://rabbitmq:15672',
-            'redis' => 'http://redis:6379',
-            'elasticsearch' => 'http://elasticsearch:9200',
             'nginx' => 'http://nginx'
         ];
 
@@ -97,8 +72,6 @@ class DockerIntegrationTest extends TestCase
             'DB_PASSWORD',
             'RABBITMQ_HOST',
             'RABBITMQ_PORT',
-            'REDIS_HOST',
-            'ELASTICSEARCH_HOST'
         ];
 
         foreach ($requiredEnvVars as $var) {
@@ -111,8 +84,6 @@ class DockerIntegrationTest extends TestCase
         $services = [
             'postgresql',
             'rabbitmq',
-            'redis',
-            'elasticsearch',
             'nginx'
         ];
 

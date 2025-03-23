@@ -17,8 +17,17 @@ use Illuminate\Http\JsonResponse;
 /**
  * @OA\Info(
  *     version="1.0.0",
- *     title="Orders API",
- *     description="API для управления заказами"
+ *     title="Orders System API",
+ *     description="API для системы обработки заказов"
+ * )
+ * @OA\Server(
+ *     url="/api/v1",
+ *     description="API Server"
+ * )
+ * @OA\SecurityScheme(
+ *     securityScheme="bearerAuth",
+ *     type="http",
+ *     scheme="bearer"
  * )
  */
 class OrderController extends Controller
@@ -30,7 +39,7 @@ class OrderController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/orders",
+     *     path="/orders",
      *     summary="Создание нового заказа",
      *     tags={"Orders"},
      *     @OA\RequestBody(
@@ -38,25 +47,42 @@ class OrderController extends Controller
      *         @OA\JsonContent(ref="#/components/schemas/OrderRequest")
      *     ),
      *     @OA\Response(
-     *         response=200,
+     *         response=201,
      *         description="Заказ успешно создан",
      *         @OA\JsonContent(ref="#/components/schemas/OrderResponse")
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Ошибка валидации"
+     *         description="Ошибка валидации",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 description="Сообщение об ошибке"
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 description="Список ошибок валидации",
+     *                 @OA\AdditionalProperties(
+     *                     type="array",
+     *                     @OA\Items(type="string")
+     *                 )
+     *             )
+     *         )
      *     )
      * )
      */
     public function store(OrderRequest $request): JsonResponse
     {
         try {
-            $orderData = $request->toDto();
+            $orderData = $request?->toDto();
             $order = $this->orderService->createOrder($orderData);
             
             // Запускаем обработку созданного заказа
             $processingData = OrderProcessingData::forStatusChange(
-                orderId: $order->id,
+                orderId: $order?->id,
                 oldStatus: 'pending',
                 newStatus: 'processing'
             );
@@ -70,7 +96,7 @@ class OrderController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/orders/{id}",
+     *     path="/orders/{id}",
      *     summary="Получение информации о заказе",
      *     tags={"Orders"},
      *     @OA\Parameter(
@@ -94,7 +120,7 @@ class OrderController extends Controller
     public function show(Order $order): JsonResponse
     {
         try {
-            $order = $this->orderService->getOrder($order->id);
+            $order = $this->orderService->getOrder($order?->id);
             return OrderResponse::make($order);
         } catch (\Exception $e) {
             return OrderResponse::error($e);
@@ -103,15 +129,31 @@ class OrderController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/orders",
+     *     path="/orders",
      *     summary="Получение списка заказов",
      *     tags={"Orders"},
+     *     @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         description="Номер страницы",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Количество записей на странице",
+     *         @OA\Schema(type="integer")
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Список заказов",
      *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(ref="#/components/schemas/OrderResponse")
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/OrderResponse")
+     *             )
      *         )
      *     )
      * )
@@ -119,8 +161,9 @@ class OrderController extends Controller
     public function index(): JsonResponse
     {
         try {
-            $orders = $this->orderService->listOrders();
-            return OrderResponse::collection($orders);
+            return OrderResponse::collection(
+                $this->orderService->listOrders()
+            );
         } catch (\Exception $e) {
             return OrderResponse::error($e);
         }
@@ -128,7 +171,7 @@ class OrderController extends Controller
 
     /**
      * @OA\Patch(
-     *     path="/api/v1/orders/{id}/status",
+     *     path="/orders/{id}/status",
      *     summary="Обновление статуса заказа",
      *     tags={"Orders"},
      *     @OA\Parameter(
@@ -140,12 +183,18 @@ class OrderController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/OrderStatusRequest")
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 enum={"pending", "processing", "completed", "cancelled"}
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Статус заказа обновлен",
-     *         @OA\JsonContent(ref="#/components/schemas/OrderProcessingResponse")
+     *         @OA\JsonContent(ref="#/components/schemas/OrderResponse")
      *     ),
      *     @OA\Response(
      *         response=404,
@@ -153,18 +202,42 @@ class OrderController extends Controller
      *     ),
      *     @OA\Response(
      *         response=422,
-     *         description="Ошибка валидации"
+     *         description="Ошибка валидации",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 description="Сообщение об ошибке"
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object",
+     *                 description="Список ошибок валидации",
+     *                 @OA\AdditionalProperties(
+     *                     type="array",
+     *                     @OA\Items(type="string")
+     *                 )
+     *             )
+     *         )
      *     )
      * )
      */
     public function updateStatus(Order $order, OrderStatusRequest $request): JsonResponse
     {
         try {
-            $oldStatus = $order->status;
-            $newStatus = $request->validated('status');
+            $oldStatus = $order?->status;
+            $newStatus = $request?->validated('status');
+
+            if (!$this->processingService->isValidStatusTransition($oldStatus, $newStatus)) {
+                return OrderProcessingResponse::error(
+                    "Invalid status transition from {$oldStatus} to {$newStatus}",
+                    400
+                );
+            }
 
             $processingData = OrderProcessingData::forStatusChange(
-                orderId: $order->id,
+                orderId: $order?->id,
                 oldStatus: $oldStatus,
                 newStatus: $newStatus
             );

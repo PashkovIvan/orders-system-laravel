@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Order extends Model
 {
+    use HasFactory;
+
     public const STATUS_PENDING = 'pending';
     public const STATUS_PROCESSING = 'processing';
     public const STATUS_COMPLETED = 'completed';
@@ -22,10 +25,8 @@ class Order extends Model
     protected $fillable = [
         'customer_name',
         'customer_email',
-        'customer_phone',
         'total_amount',
         'status',
-        'notes',
         'processed_at'
     ];
 

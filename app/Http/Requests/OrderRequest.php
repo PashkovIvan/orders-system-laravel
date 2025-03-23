@@ -6,6 +6,50 @@ use App\DataTransferObjects\OrderData;
 use App\DataTransferObjects\OrderItemData;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * @OA\Schema(
+ *     schema="OrderRequest",
+ *     type="object",
+ *     required={"customer_name", "customer_email", "items"},
+ *     @OA\Property(
+ *         property="customer_name",
+ *         type="string",
+ *         description="Имя клиента"
+ *     ),
+ *     @OA\Property(
+ *         property="customer_email",
+ *         type="string",
+ *         format="email",
+ *         description="Email клиента"
+ *     ),
+ *     @OA\Property(
+ *         property="items",
+ *         type="array",
+ *         @OA\Items(
+ *             type="object",
+ *             required={"product_name", "quantity", "price"},
+ *             @OA\Property(
+ *                 property="product_name",
+ *                 type="string",
+ *                 description="Название товара"
+ *             ),
+ *             @OA\Property(
+ *                 property="quantity",
+ *                 type="integer",
+ *                 minimum=1,
+ *                 description="Количество"
+ *             ),
+ *             @OA\Property(
+ *                 property="price",
+ *                 type="number",
+ *                 format="float",
+ *                 minimum=0,
+ *                 description="Цена за единицу"
+ *             )
+ *         )
+ *     )
+ * )
+ */
 class OrderRequest extends FormRequest
 {
     public function authorize(): bool

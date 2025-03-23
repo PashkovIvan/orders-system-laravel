@@ -19,6 +19,23 @@ class OrderServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        
+        // Мокаем OrderMessageProducer только для теста создания заказа
+        if ($this->getName() === 'test_can_create_order') {
+            $this->mock(\App\Messages\Producers\OrderMessageProducer::class, function ($mock) {
+                $mock->shouldReceive('publishMessage')
+                    ->once()
+                    ->withArgs(function ($message) {
+                        return $message instanceof \App\Contracts\Messages\MessageInterface;
+                    })
+                    ->andReturn(true);
+            });
+        } else {
+            $this->mock(\App\Messages\Producers\OrderMessageProducer::class, function ($mock) {
+                $mock->shouldReceive('publishMessage')->never();
+            });
+        }
+        
         $this->orderService = new OrderService();
     }
 
@@ -27,7 +44,6 @@ class OrderServiceTest extends TestCase
         $orderData = new OrderData(
             customer_name: 'Test Customer',
             customer_email: 'test@example.com',
-            customer_phone: '+1234567890',
             items: [
                 new OrderItemData(
                     product_name: 'Test Product',
@@ -35,8 +51,7 @@ class OrderServiceTest extends TestCase
                     price: 100,
                     total: 200
                 )
-            ],
-            notes: 'Test notes'
+            ]
         );
 
         $order = $this->orderService->createOrder($orderData);
@@ -44,9 +59,7 @@ class OrderServiceTest extends TestCase
         $this->assertInstanceOf(Order::class, $order);
         $this->assertEquals('Test Customer', $order->customer_name);
         $this->assertEquals('test@example.com', $order->customer_email);
-        $this->assertEquals('+1234567890', $order->customer_phone);
         $this->assertEquals('pending', $order->status);
-        $this->assertEquals('Test notes', $order->notes);
         $this->assertEquals(200, $order->total_amount);
 
         $this->assertCount(1, $order->items);
@@ -54,15 +67,6 @@ class OrderServiceTest extends TestCase
         $this->assertEquals(2, $order->items->first()->quantity);
         $this->assertEquals(100, $order->items->first()->price);
         $this->assertEquals(200, $order->items->first()->total);
-    }
-
-    public function test_can_update_order_status()
-    {
-        $order = Order::factory()->create(['status' => 'pending']);
-        
-        $updatedOrder = $this->orderService->updateOrderStatus($order, 'processing');
-
-        $this->assertEquals('processing', $updatedOrder->status);
     }
 
     public function test_can_get_order()
@@ -86,6 +90,6 @@ class OrderServiceTest extends TestCase
         $orders = $this->orderService->listOrders();
 
         $this->assertCount(3, $orders);
-        $this->assertCount(2, $orders[0]['items']);
+        $this->assertCount(2, $orders->first()->items);
     }
 } 

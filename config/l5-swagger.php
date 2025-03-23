@@ -1,19 +1,51 @@
 <?php
 
 return [
+    'default' => 'default',
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => 'Orders API Documentation',
+                'title' => 'Orders System API Documentation',
             ],
             'routes' => [
-                'api' => 'api/v1/api-docs',
+                'api' => 'api/documentation',
             ],
             'paths' => [
                 'use_absolute_path' => env('L5_SWAGGER_USE_ABSOLUTE_PATH', true),
                 'docs_json' => 'api-docs.json',
                 'docs_yaml' => 'api-docs.yaml',
                 'format_to_use_for_docs' => env('L5_FORMAT_TO_USE_FOR_DOCS', 'json'),
+                'annotations' => [
+                    base_path('app'),
+                ],
+                'excludes' => [
+                    base_path('app/Http/Controllers/Controller.php'),
+                ],
+            ],
+            'security' => [
+                'security_definitions' => [
+                    'securitySchemes' => [
+                        'bearerAuth' => [
+                            'type' => 'http',
+                            'scheme' => 'bearer',
+                        ],
+                    ],
+                ],
+            ],
+            'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', false),
+            'generate_yaml_copy' => env('L5_SWAGGER_GENERATE_YAML_COPY', false),
+            'proxy' => false,
+            'additional_config_url' => null,
+            'operations_sort' => env('L5_SWAGGER_OPERATIONS_SORT', null),
+            'validator_url' => null,
+            'ui' => [
+                'display' => [
+                    'doc' => env('L5_SWAGGER_UI_DISPLAY_DOC', true),
+                    'filter' => env('L5_SWAGGER_UI_DISPLAY_FILTER', true),
+                ],
+                'authorization' => [
+                    'persist_authorization' => env('L5_SWAGGER_UI_PERSIST_AUTHORIZATION', false),
+                ],
             ],
         ],
     ],
@@ -27,10 +59,11 @@ return [
                 'docs' => [],
                 'oauth2_callback' => [],
             ],
+            'group_options' => [],
         ],
         'paths' => [
             'docs' => storage_path('api-docs'),
-            'views' => resource_path('views/vendor/l5-swagger'),
+            'views' => base_path('resources/views/vendor/l5-swagger'),
             'base' => env('L5_SWAGGER_BASE_PATH', null),
             'swagger_ui_assets_path' => env('L5_SWAGGER_UI_ASSETS_PATH', 'vendor/swagger-api/swagger-ui/dist/'),
             'excludes' => [],
@@ -41,10 +74,15 @@ return [
             'processors' => [],
             'pattern' => null,
             'exclude' => [],
+            'open_api_spec_version' => env('L5_SWAGGER_OPEN_API_SPEC_VERSION', '3.0.0'),
         ],
         'securityDefinitions' => [
             'securitySchemes' => [],
-            'security' => [],
+            'security' => [
+                [
+                    'bearerAuth' => [],
+                ],
+            ],
         ],
         'generate_always' => env('L5_SWAGGER_GENERATE_ALWAYS', false),
         'generate_yaml_copy' => env('L5_SWAGGER_GENERATE_YAML_COPY', false),
@@ -54,8 +92,8 @@ return [
         'validator_url' => null,
         'ui' => [
             'display' => [
-                'doc_expansion' => env('L5_SWAGGER_UI_DOC_EXPANSION', 'none'),
-                'filter' => env('L5_SWAGGER_UI_SHOW_FILTER', true),
+                'doc' => env('L5_SWAGGER_UI_DISPLAY_DOC', true),
+                'filter' => env('L5_SWAGGER_UI_DISPLAY_FILTER', true),
             ],
             'authorization' => [
                 'persist_authorization' => env('L5_SWAGGER_UI_PERSIST_AUTHORIZATION', false),

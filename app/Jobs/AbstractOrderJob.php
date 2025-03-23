@@ -15,7 +15,7 @@ abstract class AbstractOrderJob implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected function __construct(
-        protected readonly Order $order
+        protected Order $order
     ) {}
 
     protected function logInfo(string $message, array $context = []): void

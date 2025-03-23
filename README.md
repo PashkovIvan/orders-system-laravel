@@ -11,6 +11,7 @@
 - Docker
 - Docker Compose
 - Nginx
+- L5-Swagger (API документация)
 
 ## Требования
 
@@ -41,6 +42,7 @@ sh setup.sh
 
 После успешной установки сервисы будут доступны по следующим адресам:
 - API: http://localhost
+- Swagger UI: http://localhost/api/documentation
 - RabbitMQ Management: http://localhost:15672
 - PostgreSQL: localhost:5432
 
@@ -76,15 +78,37 @@ sh main-test.sh
 docker-compose exec app php artisan l5-swagger:generate
 ```
 3. Откройте в браузере:
-- Swagger UI: http://localhost/docs
-- JSON документация: http://localhost/api/v1/api-docs
+- Swagger UI: http://localhost/api/documentation
 
 ### Доступные эндпоинты
 
 - `GET /api/v1/orders` - Получение списка заказов
+  - Query параметры:
+    - `page` (опционально) - номер страницы
+    - `per_page` (опционально) - количество записей на странице
 - `POST /api/v1/orders` - Создание нового заказа
+  - Тело запроса:
+    ```json
+    {
+      "customer_name": "string",
+      "customer_email": "string",
+      "items": [
+        {
+          "product_name": "string",
+          "quantity": 1,
+          "price": 0.00
+        }
+      ]
+    }
+    ```
 - `GET /api/v1/orders/{id}` - Получение информации о заказе
 - `PATCH /api/v1/orders/{id}/status` - Обновление статуса заказа
+  - Тело запроса:
+    ```json
+    {
+      "status": "pending|processing|completed|cancelled"
+    }
+    ```
 
 ## Архитектура
 
@@ -122,7 +146,7 @@ docker-compose exec app php artisan l5-swagger:generate
 
 Разрешенные переходы статусов:
 - `pending` → `processing`, `cancelled`
-- `processing` → `completed`, `failed`
+- `processing` → `completed`, `failed`, `cancelled`
 - `failed` → `processing`
 - `completed` → нет переходов
 - `cancelled` → нет переходов

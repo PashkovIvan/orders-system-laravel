@@ -18,8 +18,6 @@ class OrderSeeder extends Seeder
             $order = Order::create([
                 'customer_name' => $faker->name,
                 'customer_email' => $faker->email,
-                'customer_phone' => $faker->phoneNumber,
-                'notes' => $faker->optional()->sentence,
                 'status' => $faker->randomElement(['pending', 'processing', 'completed', 'cancelled']),
                 'total_amount' => 0,
                 'created_at' => $faker->dateTimeBetween('-1 year', 'now'),

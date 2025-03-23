@@ -43,7 +43,6 @@ class ApiDocumentationTest extends TestCase
                                 'id',
                                 'customer_name',
                                 'customer_email',
-                                'customer_phone',
                                 'status',
                                 'total_amount',
                                 'items',
@@ -53,7 +52,6 @@ class ApiDocumentationTest extends TestCase
                             'required' => [
                                 'customer_name',
                                 'customer_email',
-                                'customer_phone',
                                 'items'
                             ]
                         ]
