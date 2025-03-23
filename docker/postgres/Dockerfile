@@ -4,10 +4,10 @@ FROM postgres:15-alpine
 RUN apk add --no-cache musl-locales musl-locales-lang
 
 # Копируем конфиг
-COPY postgresql.conf /etc/postgresql/postgresql.conf
+COPY ./postgresql.conf /etc/postgresql/postgresql.conf
 
 # Копируем скрипты инициализации
-COPY init/ /docker-entrypoint-initdb.d/
+COPY ./init/ /docker-entrypoint-initdb.d/
 
 # Устанавливаем параметры локали
 ENV LANG=en_US.utf8

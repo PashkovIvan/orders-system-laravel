@@ -11,13 +11,15 @@ RUN apt-get update && apt-get install -y \
     unzip \
     && rm -rf /var/lib/apt/lists/*
 
-# Создание директории для логов PHP
+# Создание директорий для логов и кэша
 RUN mkdir -p /var/log/php && \
-    chown -R www-data:www-data /var/log/php
+    mkdir -p /var/www/.composer/cache && \
+    chown -R www-data:www-data /var/log/php && \
+    chown -R www-data:www-data /var/www/.composer
 
 # Установка PHP расширений
-RUN docker-php-ext-install -j$(nproc) pdo_pgsql pgsql zip opcache \
-    && docker-php-ext-enable pdo_pgsql pgsql zip opcache
+RUN docker-php-ext-install -j$(nproc) pdo_pgsql pgsql zip opcache sockets \
+    && docker-php-ext-enable pdo_pgsql pgsql zip opcache sockets
 
 # Установка Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

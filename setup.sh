@@ -15,7 +15,9 @@ fi
 echo "🚀 Начинаем установку проекта..."
 
 # Включаем оптимизацию сборки
-# export COMPOSE_BAKE=true
+#export COMPOSE_BAKE=true
+#export DOCKER_BUILDKIT=1
+#export COMPOSE_DOCKER_CLI_BUILD=1
 
 # Копирование .env файла
 if [ ! -f .env ]; then
@@ -23,22 +25,23 @@ if [ ! -f .env ]; then
     cp .env.example .env
 fi
 
+# Очистка неиспользуемых ресурсов Docker
+echo "🧹 Очистка неиспользуемых ресурсов Docker..."
+docker system prune -f
+
 # Сборка и запуск контейнеров
 echo "🏗️  Сборка и запуск контейнеров..."
 docker-compose up -d --build
 
-# Ожидание готовности базы данных
-echo "⏳ Ожидание готовности PostgreSQL..."
-until docker-compose exec -T postgres pg_isready -U www-data; do
-    sleep 2
-done
-
 # Установка зависимостей
 echo "📦 Установка зависимостей Composer..."
-docker-compose exec -T app composer install || {
-    echo "❌ Ошибка установки зависимостей Composer."
-    exit 1
-}
+if ! docker-compose exec -T app composer install; then
+    echo "📦 Установка зависимостей не удалась, пробуем обновить..."
+    if ! docker-compose exec -T app composer update; then
+        echo "❌ Ошибка установки зависимостей Composer."
+        exit 1
+    fi
+fi
 
 # Генерация ключа приложения
 echo "🔑 Генерация ключа приложения..."
@@ -46,6 +49,12 @@ docker-compose exec -T app php artisan key:generate || {
     echo "❌ Ошибка генерации ключа приложения."
     exit 1
 }
+
+# Ожидание готовности базы данных
+echo "⏳ Ожидание готовности PostgreSQL..."
+until docker-compose exec -T postgres pg_isready -U www-data; do
+    sleep 2
+done
 
 # Миграции
 echo "🔄 Выполнение миграций..."

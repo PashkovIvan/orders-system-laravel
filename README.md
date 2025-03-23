@@ -1,136 +1,169 @@
-# Order System
+# Orders System
 
-Система обработки и хранения заказов на Laravel.
+Система обработки заказов на Laravel с использованием RabbitMQ для асинхронной обработки.
 
-## Технологии
+## Технологический стек
 
 - PHP 8.3
-- Laravel 10.x
-- PostgreSQL 15
-- RabbitMQ 3.x
+- Laravel 11.0
+- PostgreSQL
+- RabbitMQ
+- Docker
+- Docker Compose
 - Nginx
-- Docker & Docker Compose
 
-## Структура проекта
+## Требования
 
-project/
-├── docker/ # Docker конфигурации
-│ ├── nginx/ # Настройки веб-сервера
-│ ├── php/ # Настройки PHP и FPM
-│ ├── postgres/ # Инициализация БД
-│ └── rabbitmq/ # Настройки очередей
-├── app/ # Основной код
-├── config/ # Конфигурация
-├── database/ # Миграции и сиды
-├── tests/ # Тесты
-├── ...
-├── .editorconfig # Настройки редактора
-├── .env.example # Пример переменных окружения
-├── docker-compose.yml # Конфигурация Docker
-├── Makefile # Команды для управления
-└── README.md # Документация
+- Docker
+- Docker Compose
 
 ## Быстрый старт
 
-1. Клонировать репозиторий:
-
+1. Клонируйте репозиторий:
 ```bash
 git clone <repository-url>
+cd orders-system-laravel
 ```
 
-2. Запустить установку:
-
-```bash
-make setup
-```
-
-или из корня проекта для Windows (если нет make расширения)
-
+2. Запустите скрипт установки:
 ```bash
 sh setup.sh
 ```
 
-После установки сервисы будут доступны:
+Скрипт выполнит следующие действия:
+- Проверит наличие Docker и Docker Compose
+- Создаст .env файл из .env.example
+- Соберет и запустит контейнеры
+- Установит зависимости Composer
+- Сгенерирует ключ приложения
+- Выполнит миграции
+- Очистит кэш
+
+После успешной установки сервисы будут доступны по следующим адресам:
 - API: http://localhost
 - RabbitMQ Management: http://localhost:15672
 - PostgreSQL: localhost:5432
 
-## API Endpoints
+## Дополнительные скрипты
 
-### Заказы
-- `POST /api/orders` - Создание заказа
-- `GET /api/orders` - Список заказов
-- `GET /api/orders/{id}` - Детали заказа
-- `PUT /api/orders/{id}` - Обновление заказа
-- `DELETE /api/orders/{id}` - Удаление заказа
-
-## Команды Make
-
-### Основные команды
-- `make setup` - Первоначальная настройка проекта
-- `make start` - Запуск контейнеров
-- `make stop` - Остановка контейнеров
-- `make restart` - Перезапуск контейнеров
-
-### Разработка
-- `make shell` - Доступ к контейнеру PHP
-- `make logs` - Просмотр логов
-- `make test` - Запуск тестов
-
-### Composer
-- `make composer-install` - Установка зависимостей
-- `make composer-update` - Обновление зависимостей
-
-### Работа с БД
-- `make migrate` - Запуск миграций
-- `make migrate-fresh` - Пересоздание таблиц
-
-## Разработка
-
-### Запуск тестов
-
-Все тесты
+### full-rebuild.sh
+Полная пересборка проекта:
 ```bash
-make test
+sh full-rebuild.sh
 ```
 
-Конкретный тест
+### main-test.sh
+Запуск всех тестов проекта:
 ```bash
-docker-compose exec app php artisan test --filter=OrderTest
+sh main-test.sh
 ```
+Выполняет:
+- Unit тесты (OrderServiceTest)
+- Feature тесты (OrderControllerTest)
+- Тесты валидации (OrderValidationTest)
+- Тесты очередей (OrderQueueTest)
+- Тесты производительности (OrderLoadTest)
 
-### Работа с очередями
+## API Документация
 
-Запуск обработчика
+### Swagger UI
+
+Для просмотра API документации в формате Swagger UI:
+
+1. Убедитесь, что проект запущен
+2. Выполните команду для генерации документации:
 ```bash
-docker-compose exec app php artisan queue:work
+docker-compose exec app php artisan l5-swagger:generate
 ```
+3. Откройте в браузере:
+- Swagger UI: http://localhost/docs
+- JSON документация: http://localhost/api/v1/api-docs
 
-Мониторинг
-```bash
-docker-compose exec app php artisan queue:monitor
-```
+### Доступные эндпоинты
 
-### Создание тестовых данных
-```bash
-docker-compose exec app php artisan db:seed
-```
+- `GET /api/v1/orders` - Получение списка заказов
+- `POST /api/v1/orders` - Создание нового заказа
+- `GET /api/v1/orders/{id}` - Получение информации о заказе
+- `PATCH /api/v1/orders/{id}/status` - Обновление статуса заказа
+
+## Архитектура
+
+### Основные компоненты
+
+- **Controllers**: Обработка HTTP запросов (`App\Http\Controllers\Api\V1`)
+- **Services**: Бизнес-логика и обработка заказов
+- **Jobs**: Асинхронные задачи для обработки заказов
+- **DTOs**: Объекты передачи данных (`OrderData`, `OrderProcessingData`)
+- **Models**: Eloquent модели для работы с базой данных
+- **Messages**: Сообщения для RabbitMQ
+- **Contracts**: Интерфейсы для реализации паттерна Repository
+
+### Обработка заказов
+
+1. Создание заказа:
+   - Валидация входных данных через `OrderRequest`
+   - Преобразование в `OrderData` DTO
+   - Сохранение через `OrderService`
+   - Отправка в очередь через `OrderProcessingService`
+
+2. Обновление статуса:
+   - Валидация через `OrderStatusRequest`
+   - Использование `OrderProcessingData` DTO
+   - Обработка через `OrderProcessingService`
+   - Асинхронное обновление через RabbitMQ
+
+### Статусы заказов
+
+- `pending` - начальный статус
+- `processing` - заказ в обработке
+- `completed` - заказ выполнен
+- `failed` - ошибка обработки
+- `cancelled` - заказ отменен
+
+Разрешенные переходы статусов:
+- `pending` → `processing`, `cancelled`
+- `processing` → `completed`, `failed`
+- `failed` → `processing`
+- `completed` → нет переходов
+- `cancelled` → нет переходов
+
+## Docker контейнеры и ресурсы
+
+- `nginx`: Веб-сервер
+- `app`: Приложение/API
+- `postgres`: База данных
+- `rabbitmq`: Очередь сообщений
+
+## Безопасность
+
+- Валидация всех входных данных
+- Безопасная обработка очередей
+- Транзакционная обработка заказов
+- Логирование всех операций
+- Обработка ошибок и исключений
 
 ## Мониторинг
 
-### RabbitMQ Management
-- URL: http://localhost:15672
-- Login: guest
-- Password: guest
-
-### Логи
-
-Все логи
+- RabbitMQ Management UI: http://localhost:15672
+  - Логин: guest
+  - Пароль: guest
+- Логи приложения: 
 ```bash
-make logs
+docker-compose exec app tail -f storage/logs/laravel.log
 ```
 
-Логи конкретного сервиса
+## Code Style
+
+Проект следует PSR-12 стандарту. Для проверки и исправления стиля кода:
+
 ```bash
-docker-compose logs [service_name]
+# Проверка
+docker-compose exec app composer format-check
+
+# Исправление
+docker-compose exec app composer format
 ```
+
+## Лицензия
+
+MIT

@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'default' => env('QUEUE_CONNECTION', 'database'),
+    'default' => env('QUEUE_CONNECTION', 'rabbitmq'),
 
     /*
     |--------------------------------------------------------------------------
@@ -70,6 +70,50 @@ return [
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
             'block_for' => null,
             'after_commit' => false,
+        ],
+
+        'rabbitmq' => [
+            'driver' => 'rabbitmq',
+            'host' => env('RABBITMQ_HOST', 'localhost'),
+            'port' => env('RABBITMQ_PORT', 5672),
+            'user' => env('RABBITMQ_USER', 'www-data'),
+            'password' => env('RABBITMQ_PASSWORD', 'www-data'),
+            'vhost' => env('RABBITMQ_VHOST', '/'),
+            'queue' => env('RABBITMQ_QUEUE', 'orders_queue'),
+            'exchange' => env('RABBITMQ_EXCHANGE', 'orders_exchange'),
+            'exchange_type' => 'topic',
+            'exchange_routing_key' => env('RABBITMQ_ROUTING_KEY', 'orders.#'),
+            'consumer_tag' => env('RABBITMQ_CONSUMER_TAG', 'orders_consumer'),
+            'ssl_options' => [
+                'verify_peer' => env('RABBITMQ_SSL_VERIFY_PEER', false),
+                'verify_peer_name' => env('RABBITMQ_SSL_VERIFY_PEER_NAME', false),
+                'allow_self_signed' => env('RABBITMQ_SSL_ALLOW_SELF_SIGNED', true)
+            ],
+            'queue_properties' => [
+                'x-ha-policy' => ['S', 'all'],
+                'x-dead-letter-exchange' => env('RABBITMQ_DLX', 'orders_dlx'),
+                'x-dead-letter-routing-key' => env('RABBITMQ_DLX_ROUTING_KEY', 'orders.dead'),
+                'x-max-priority' => 10
+            ],
+            'exchange_declare' => [
+                'durable' => true,
+                'auto_delete' => false,
+                'internal' => false,
+                'passive' => false
+            ],
+            'queue_declare' => [
+                'durable' => true,
+                'auto_delete' => false,
+                'exclusive' => false,
+                'passive' => false
+            ],
+            'channel_properties' => [
+                'prefetch_size' => 0,
+                'prefetch_count' => env('RABBITMQ_PREFETCH_COUNT', 10),
+                'global' => false
+            ],
+            'sleep_on_error' => env('RABBITMQ_ERROR_SLEEP', 5),
+            'persistent' => true
         ],
 
     ],

@@ -4,7 +4,7 @@ FROM nginx:alpine
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Копируем наш конфиг
-COPY conf.d/default.conf /etc/nginx/conf.d/
+COPY ./conf.d/default.conf /etc/nginx/conf.d/
 
 # Создаем директории для логов
 RUN mkdir -p /var/log/nginx && \

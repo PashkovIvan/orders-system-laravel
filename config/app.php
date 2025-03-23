@@ -1,5 +1,8 @@
 <?php
 
+use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\ServiceProvider;
+
 return [
 
     /*
@@ -13,7 +16,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'app'),
 
     /*
     |--------------------------------------------------------------------------
@@ -122,5 +125,9 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    'providers' => ServiceProvider::defaultProviders()->merge([
+        App\Providers\AppServiceProvider::class,
+    ])->toArray(),
 
 ];
