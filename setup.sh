@@ -73,7 +73,6 @@ docker-compose exec -T app php artisan route:clear
 echo "📚 Генерация документации Swagger..."
 docker-compose exec -T app php artisan l5-swagger:generate || {
     echo "❌ Ошибка генерации документации Swagger."
-    exit 1
 }
 
 echo "✨ Установка завершена!"

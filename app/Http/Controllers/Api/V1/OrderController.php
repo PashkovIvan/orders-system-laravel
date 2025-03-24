@@ -120,8 +120,9 @@ class OrderController extends Controller
     public function show(Order $order): JsonResponse
     {
         try {
-            $order = $this->orderService->getOrder($order?->id);
-            return OrderResponse::make($order);
+            return OrderResponse::make(
+                $this->orderService->getOrder($order?->id)
+            );
         } catch (\Exception $e) {
             return OrderResponse::error($e);
         }
